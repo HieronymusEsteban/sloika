@@ -5,7 +5,7 @@ import sys
 from sloika.cmdargs import FileExists
 from sloika.layers import Layer
 from theano.tensor.sharedvar import TensorSharedVariable
-from theano.sandbox.cuda.var import CudaNdarraySharedVariable
+from theano.compile.sharedvalue import SharedVariable
 import theano as th
 import warnings
 
@@ -20,8 +20,7 @@ parser.add_argument('output', help='Output file to write to')
 
 
 def device(obj, name):
-    return ('cpu' if isinstance(getattr(obj, name), TensorSharedVariable)
-            else 'gpu')
+    return ('cpu' if isinstance(getattr(obj, name), TensorSharedVariable) else 'gpu')
 
 
 def get_var_names(obj, depth=0, max_depth=3):
@@ -38,9 +37,7 @@ def get_var_names(obj, depth=0, max_depth=3):
     """
     shared_vars = []
     for name, value in list(vars(obj).items()):
-        if isinstance(value, TensorSharedVariable):
-            shared_vars.append((obj, name, device(obj, name)))
-        elif isinstance(value, CudaNdarraySharedVariable):
+        if isinstance(value, SharedVariable):
             shared_vars.append((obj, name, device(obj, name)))
         elif isinstance(value, Layer):
             shared_vars.extend(get_var_names(value, 0, max_depth=max_depth))
